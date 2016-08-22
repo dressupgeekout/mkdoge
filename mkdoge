@@ -6,7 +6,7 @@ require 'optparse'
 
 PROGNAME = File.basename($0)
 HERE = File.absolute_path(File.dirname(__FILE__))
-INPUT_IMAGE = File.join(HERE, "data", "doge.jpg")
+@input_image = File.join(HERE, "data", "doge.jpg")
 OUTPUT_IMAGE = "out.png"
 GRAPHICSMAGICK = `which gm`.chomp
 @font_file = File.join("/", "Library", "Fonts", "Comic Sans MS.ttf")
@@ -42,7 +42,8 @@ end
 parser = OptionParser.new do |opts|
   opts.on("-v", "--verbose") { $VERBOSE = true }
   opts.on("-d", "--debug") { $DEBUG = true }
-  opts.on("--font-file=PATH") { |path| @font_file = File.expand_path(path) }
+  opts.on("--font-file=PATH") { |path| @font_file = Shellwords.escape(File.expand_path(path)) }
+  opts.on("--input-image=PATH") { |path| @input_image = Shellwords.escape(File.expand_path(path)) }
 end
 parser.parse!(ARGV)
 
@@ -53,8 +54,8 @@ if phrases.none?
   exit 1
 end
 
-width = `#{GRAPHICSMAGICK} identify -format "%w" #{INPUT_IMAGE}`.chomp.to_i
-height = `#{GRAPHICSMAGICK} identify -format "%h" #{INPUT_IMAGE}`.chomp.to_i
+width = `#{GRAPHICSMAGICK} identify -format "%w" #{@input_image}`.chomp.to_i
+height = `#{GRAPHICSMAGICK} identify -format "%h" #{@input_image}`.chomp.to_i
 
 phrase_map = build_phrase_map(phrases, [width, height])
 
@@ -75,7 +76,7 @@ phrase_options = phrase_map.map { |phrase, loc|
 }
 
 cmd = %Q(
-  #{GRAPHICSMAGICK} convert #{INPUT_IMAGE} \
+  #{GRAPHICSMAGICK} convert #{@input_image} \
     #{font_option} \
     #{phrase_options.join(" ")} \
     #{OUTPUT_IMAGE}
