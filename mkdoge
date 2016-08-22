@@ -1,0 +1,79 @@
+#!/usr/bin/env ruby
+# mkdoge -- Create a suitable Doge picture
+require 'shellwords'
+
+PROGNAME = File.basename($0)
+HERE = File.absolute_path(File.dirname(__FILE__))
+INPUT_IMAGE = File.join(HERE, "data", "doge.jpg")
+OUTPUT_IMAGE = "out.png"
+GRAPHICSMAGICK = `which gm`.chomp
+COMIC_SANS_FILE = File.join("/", "Library", "Fonts", "Comic Sans MS.ttf")
+
+def usage
+  $stderr.printf("%s: usage: %s phrase [phrase ...]\n", PROGNAME, PROGNAME)
+end
+
+def random_place(maxx, maxy)
+  return rand(maxx-100), rand(maxy-100)
+end
+
+def random_text_size
+  return 16 + rand(72)
+end
+
+def random_color
+  return sprintf("rgb(%d,%d,%d)", rand(256), rand(256), rand(256))
+end
+
+def build_phrase_map(phrases, image_dimensions)
+  map = {}
+
+  phrases.each do |phrase|
+    map[phrase] = random_place(*image_dimensions)
+  end
+
+  return map
+end
+
+##### ##### ##### #####
+
+phrases = ARGV.dup
+
+if phrases.none?
+  usage
+  exit 1
+end
+
+width = `#{GRAPHICSMAGICK} identify -format "%w" #{INPUT_IMAGE}`.chomp.to_i
+height = `#{GRAPHICSMAGICK} identify -format "%h" #{INPUT_IMAGE}`.chomp.to_i
+
+phrase_map = build_phrase_map(phrases, [width, height])
+
+if $DEBUG
+  phrase_map.each do |phrase, loc|
+    $stderr.printf("%s\t=> (%d, %d)\n", phrase.inspect, loc[0], loc[1])
+  end
+end
+
+font_option = %Q(-font #{Shellwords.escape(COMIC_SANS_FILE)})
+
+phrase_options = phrase_map.map { |phrase, loc|
+  %Q(
+    -pointsize #{random_text_size} 
+    -fill '#{random_color}'
+    -draw 'text #{loc[0]},#{loc[1]} "#{phrase}"'
+  ).gsub("\n", " ")
+}
+
+cmd = %Q(
+  #{GRAPHICSMAGICK} convert #{INPUT_IMAGE} \
+    #{font_option} \
+    #{phrase_options.join(" ")} \
+    #{OUTPUT_IMAGE}
+).gsub(/\s{2,}/, " ")
+
+if $VERBOSE
+  $stderr.puts(cmd)
+end
+
+`#{cmd}`; exit $?.exitstatus;
