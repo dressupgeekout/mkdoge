@@ -11,10 +11,6 @@ OUTPUT_IMAGE = "out.png"
 GRAPHICSMAGICK = `which gm`.chomp
 @font_file = File.join("/", "Library", "Fonts", "Comic Sans MS.ttf")
 
-def usage
-  $stderr.printf("%s: usage: %s [-dv] [--font-file=PATH] phrase [phrase ...]\n", PROGNAME, PROGNAME)
-end
-
 def random_place(maxx, maxy)
   return rand(maxx-100), rand(maxy-100)
 end
@@ -50,7 +46,7 @@ parser.parse!(ARGV)
 phrases = ARGV.dup
 
 if phrases.none?
-  usage
+  puts parser
   exit 1
 end
 
