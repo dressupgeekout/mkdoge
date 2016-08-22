@@ -37,7 +37,7 @@ end
 
 parser = OptionParser.new do |opts|
   opts.on("-v", "--verbose") { $VERBOSE = true }
-  opts.on("-d", "--debug") { $DEBUG = true }
+  opts.on("-d", "--debug") { $DEBUG = true; $VERBOSE = true; }
   opts.on("--font-file=PATH") { |path| @font_file = Shellwords.escape(File.expand_path(path)) }
   opts.on("--input-image=PATH") { |path| @input_image = Shellwords.escape(File.expand_path(path)) }
 end
