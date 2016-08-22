@@ -1,16 +1,18 @@
 #!/usr/bin/env ruby
 # mkdoge -- Create a suitable Doge picture
+
 require 'shellwords'
+require 'optparse'
 
 PROGNAME = File.basename($0)
 HERE = File.absolute_path(File.dirname(__FILE__))
 INPUT_IMAGE = File.join(HERE, "data", "doge.jpg")
 OUTPUT_IMAGE = "out.png"
 GRAPHICSMAGICK = `which gm`.chomp
-COMIC_SANS_FILE = File.join("/", "Library", "Fonts", "Comic Sans MS.ttf")
+@font_file = File.join("/", "Library", "Fonts", "Comic Sans MS.ttf")
 
 def usage
-  $stderr.printf("%s: usage: %s phrase [phrase ...]\n", PROGNAME, PROGNAME)
+  $stderr.printf("%s: usage: %s [-dv] [--font-file=PATH] phrase [phrase ...]\n", PROGNAME, PROGNAME)
 end
 
 def random_place(maxx, maxy)
@@ -37,6 +39,13 @@ end
 
 ##### ##### ##### #####
 
+parser = OptionParser.new do |opts|
+  opts.on("-v", "--verbose") { $VERBOSE = true }
+  opts.on("-d", "--debug") { $DEBUG = true }
+  opts.on("--font-file=PATH") { |path| @font_file = File.expand_path(path) }
+end
+parser.parse!(ARGV)
+
 phrases = ARGV.dup
 
 if phrases.none?
@@ -55,7 +64,7 @@ if $DEBUG
   end
 end
 
-font_option = %Q(-font #{Shellwords.escape(COMIC_SANS_FILE)})
+font_option = %Q(-font #{Shellwords.escape(@font_file)})
 
 phrase_options = phrase_map.map { |phrase, loc|
   %Q(
